@@ -7,6 +7,7 @@ interface AuthCtx {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx>(null!);
@@ -42,8 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  // 👇 ADDED THIS FUNCTION
+  async function updateProfile(data: Partial<User>) {
+    if (!user) return;
+    const updatedUser = { ...user, ...data };
+    localStorage.setItem("mock_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }
+
   return (
-    <Ctx.Provider value={{ user, loading, login, register, logout }}>
+    // 👇 ADDED updateProfile TO THE VALUE
+    <Ctx.Provider value={{ user, loading, login, register, logout, updateProfile }}>
       {children}
     </Ctx.Provider>
   );

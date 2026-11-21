@@ -1,33 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
-require('dotenv').config();
+// server/src/index.js
+import express from 'express';
+import mongoose from 'mongoose';
+// ... other imports
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+// ... middleware and routes
 
-// Connect to Railway Database using the Environment Variable
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Required for Railway
-});
+// Database connection (for Serverless, it's best to place it here or cache the connection)
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error(err));
 
-// Test Route
-app.get('/', (req, res) => {
-  res.send('Backend is running!');
-});
-
-// Example: Fetch documents
-app.get('/api/documents', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM documents');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ⚠️ Key: Export app instead of listening
+// If your package.json has "type": "module", use export default app
+export default app;
