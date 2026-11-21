@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "99fbcf24-f0aa-4267-a197-e3d1ea238ed1",
+      "name": "Smoke User",
+      "email": "smoke@example.com",
+      "password": "$2b$12$z.DtnvTxUXxAgv0ptDbXGONDcEmnLAPH1WSyJjKJ3.79d7xvfIiaG",
+      "avatar": "",
+      "resetToken": null
+    }
+  ],
+  "documents": [],
+  "invites": []
+}
