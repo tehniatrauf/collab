@@ -4,19 +4,18 @@ import express from "express";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { Server } from "socket.io";
 import { v4 as uuid } from "uuid";
 import mongoose from "mongoose";
 import { User, Document, Invite } from "./models.js";
 
 const app = express();
-// Attach Socket.io directly to the Express app for Vercel compatibility
-const io = new Server(app, { cors: { origin: process.env.CLIENT_URL || "*", credentials: true } });
-
 const jwtSecret = process.env.JWT_SECRET || "development-secret-change-me";
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+// Improved MongoDB connection for Vercel Serverless
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 15000,
+  bufferCommands: false,
+})
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
@@ -181,55 +180,8 @@ app.post("/api/documents/:id/restore/:versionId", auth, async (req, res) => {
   doc.content = version.content;
   saveSnapshot(doc, req.user.name, "Restored previous version");
   await doc.save();
-  io.to(doc.id).emit("document:update", { content: doc.content, language: doc.language });
+  // Socket.io removed. Frontend must re-fetch the document to see changes.
   res.json({ document: doc });
-});
-
-// Socket.io Logic (Works for the duration of the serverless function)
-io.use((socket, next) => {
-  try {
-    socket.user = jwt.verify(socket.handshake.auth.token, jwtSecret);
-    next();
-  } catch { next(new Error("Unauthorized")); }
-});
-
-io.on("connection", (socket) => {
-  socket.on("document:join", async ({ documentId }) => {
-    const doc = await Document.findById(documentId);
-    const role = doc?.ownerId.toString() === socket.user.id ? "Owner" : doc?.members.find((m) => m.userId === socket.user.id)?.role;
-    if (!doc || !role) return socket.emit("error:message", "Document access denied");
-    socket.join(documentId);
-    socket.data.documentId = documentId;
-    socket.data.role = role;
-    socket.emit("document:state", { content: doc.content, language: doc.language, role });
-    socket.to(documentId).emit("presence:join", { id: socket.user.id, name: socket.user.name });
-  });
-
-  socket.on("document:update", async ({ documentId, content, language }) => {
-    if (socket.data.documentId !== documentId) return;
-    if (socket.data.role !== "Owner" && socket.data.role !== "Editor") return socket.emit("error:message", "Viewer cannot edit");
-    const doc = await Document.findById(documentId);
-    if (!doc) return;
-    doc.content = content;
-    if (language) doc.language = language;
-    doc.changeCount += 1;
-    if (doc.changeCount >= 50) saveSnapshot(doc, socket.user.name, "50-change snapshot");
-    await doc.save();
-    socket.to(documentId).volatile.emit("document:update", { content, language });
-  });
-
-  socket.on("cursor:update", ({ documentId, cursor }) => {
-    socket.to(documentId).volatile.emit("cursor:update", { userId: socket.user.id, name: socket.user.name, cursor });
-  });
-
-  socket.on("chat:message", ({ documentId, text }) => {
-    if (!text?.trim()) return;
-    io.to(documentId).emit("chat:message", { id: uuid(), userId: socket.user.id, user: socket.user.name, text: text.trim(), time: new Date().toISOString() });
-  });
-
-  socket.on("disconnect", () => {
-    if (socket.data.documentId) socket.to(socket.data.documentId).emit("presence:leave", { id: socket.user.id, name: socket.user.name });
-  });
 });
 
 // Required for Vercel
