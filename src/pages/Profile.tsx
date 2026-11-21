@@ -13,7 +13,7 @@ export default function Profile() {
   const handleSave = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await updateProfile(name.trim(), avatar);
+      await updateProfile({ name: name.trim(), avatar: avatar });
       showToast("Profile updated successfully!", "success");
     } catch {
       showToast("Could not update profile.", "warning");
