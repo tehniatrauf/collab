@@ -232,5 +232,4 @@ io.on("connection", (socket) => {
     if (socket.data.documentId) socket.to(socket.data.documentId).emit("presence:leave", { id: socket.user.id, name: socket.user.name });
   });
 });
-
-server.listen(port, () => console.log(`CollabDocs server listening on http://localhost:${port}`));
+export default app;
