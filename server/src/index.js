@@ -2,7 +2,6 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import http from "node:http";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
@@ -11,9 +10,9 @@ import mongoose from "mongoose";
 import { User, Document, Invite } from "./models.js";
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: process.env.CLIENT_URL || "*", credentials: true } });
-const port = Number(process.env.PORT || 4000);
+// Attach Socket.io directly to the Express app for Vercel compatibility
+const io = new Server(app, { cors: { origin: process.env.CLIENT_URL || "*", credentials: true } });
+
 const jwtSecret = process.env.JWT_SECRET || "development-secret-change-me";
 
 // Connect to MongoDB
@@ -186,7 +185,7 @@ app.post("/api/documents/:id/restore/:versionId", auth, async (req, res) => {
   res.json({ document: doc });
 });
 
-// Socket.io Logic (simplified for MongoDB)
+// Socket.io Logic (Works for the duration of the serverless function)
 io.use((socket, next) => {
   try {
     socket.user = jwt.verify(socket.handshake.auth.token, jwtSecret);
@@ -232,4 +231,6 @@ io.on("connection", (socket) => {
     if (socket.data.documentId) socket.to(socket.data.documentId).emit("presence:leave", { id: socket.user.id, name: socket.user.name });
   });
 });
+
+// Required for Vercel
 export default app;
