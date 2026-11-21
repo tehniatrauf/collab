@@ -11,16 +11,38 @@ import { User, Document, Invite } from "./models.js";
 const app = express();
 const jwtSecret = process.env.JWT_SECRET || "development-secret-change-me";
 
-// Improved MongoDB connection for Vercel Serverless
-mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 15000,
-  bufferCommands: false,
-})
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+// --- VERCEL SERVERLESS CACHED CONNECTION ---
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) return cached.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 30000,
+      bufferCommands: false,
+    }).then((mongooseInstance) => mongooseInstance);
+  }
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+// -------------------------------------------
 
 app.use(cors({ origin: process.env.CLIENT_URL || true, credentials: true }));
 app.use(express.json({ limit: "10mb" }));
+
+// Middleware to ensure DB is connected before handling any route
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB Connection Middleware Error:", err);
+    res.status(500).json({ message: "Database connection failed" });
+  }
+});
 
 function auth(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer /, "");
@@ -180,7 +202,6 @@ app.post("/api/documents/:id/restore/:versionId", auth, async (req, res) => {
   doc.content = version.content;
   saveSnapshot(doc, req.user.name, "Restored previous version");
   await doc.save();
-  // Socket.io removed. Frontend must re-fetch the document to see changes.
   res.json({ document: doc });
 });
 
