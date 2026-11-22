@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/authcontext";
+import { useAuth } from "../context/AuthContext"; // Ensure this matches your file name exactly
 import { User, Mail, Lock, Eye, EyeOff, Layers } from "lucide-react";
 
 export default function Register() {
@@ -14,11 +14,14 @@ export default function Register() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
+
     try {
       await register(name, email, password);
       nav("/dashboard");
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      // Show the exact error from the backend (e.g., "Email already in use")
+      setError(err.message || "Something went wrong. Please try again.");
     }
   };
 

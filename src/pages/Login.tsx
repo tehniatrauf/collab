@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/authcontext";
+import { useAuth } from "../context/AuthContext"; // Ensure this matches your file name exactly (capital A and C)
 import { Mail, Lock, Eye, EyeOff, Layers } from "lucide-react";
 
 export default function Login() {
@@ -12,11 +12,13 @@ export default function Login() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError(""); // Clear previous errors
 
     try {
       await login(email, password);
-    } catch {
-      setError("Invalid email or password");
+    } catch (err: any) {
+      // Show the exact error from the backend
+      setError(err.message || "Invalid email or password");
     }
   };
 

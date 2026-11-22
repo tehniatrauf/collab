@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { useAuth } from "../context/authcontext";
+import { useAuth } from "../context/AuthContext"; // Ensure this matches your file name exactly
 import { useToast } from "../context/ToastContext";
 import { Camera, Save } from "lucide-react";
 
@@ -15,8 +15,9 @@ export default function Profile() {
     try {
       await updateProfile({ name: name.trim(), avatar: avatar });
       showToast("Profile updated successfully!", "success");
-    } catch {
-      showToast("Could not update profile.", "warning");
+    } catch (err: any) {
+      // Show real error message if backend fails
+      showToast(err.message || "Could not update profile.", "warning");
     }
   };
 
@@ -79,7 +80,7 @@ export default function Profile() {
                   disabled
                   className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
                 />
-                <p className="text-xs text-slate-400 mt-1.5">Email cannot be changed in the demo.</p>
+                <p className="text-xs text-slate-400 mt-1.5">Email cannot be changed.</p>
               </div>
             </div>
 
