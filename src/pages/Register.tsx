@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Ensure this matches your file name exactly
+import { useAuth } from "../context/authcontext"; // Ensure this matches your file name exactly
 import { User, Mail, Lock, Eye, EyeOff, Layers } from "lucide-react";
 
 export default function Register() {

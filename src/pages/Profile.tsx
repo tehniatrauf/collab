@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { useAuth } from "../context/AuthContext"; // Ensure this matches your file name exactly
+import { useAuth } from "../context/authcontext"; // Ensure this matches your file name exactly
 import { useToast } from "../context/ToastContext";
 import { Camera, Save } from "lucide-react";
 
