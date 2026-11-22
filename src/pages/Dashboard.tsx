@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import Modal from "../components/ui/Modal";
 import { useToast } from "../context/ToastContext";
-import { api } from "../services/api";
+import  api  from "../services/api";
 
 // Define the document type based on requirements
 type DocRole = "Owner" | "Editor" | "Viewer";
@@ -46,7 +46,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     api.get("/api/documents")
-      .then(({ data }) => setDocs(data.documents.map((doc: Document) => ({
+      .then(({ data }: any) => setDocs(data.documents.map((doc: Document) => ({
         ...doc,
         updatedAt: doc.updatedAt === "Just now" ? "Just now" : "Recently",
       }))))

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useEffect, useRef } from "react";
 import { Send, RotateCcw, Shield, Edit2, Eye } from "lucide-react";
 import { createDocumentSocket } from "../../services/socket";
-import { api } from "../../services/api";
+import  api  from "../../services/api";
 
 export function ChatPanel({ documentId }: { documentId: string }) {
   const [messages, setMessages] = useState<Array<{ id: string | number; user: string; text: string; time: string; isMe: boolean }>>([
@@ -71,7 +71,7 @@ export function VersionHistory({ documentId }: { documentId: string }) {
 
   useEffect(() => {
     api.get(`/api/documents/${documentId}/versions`)
-      .then(({ data }) => setVersions(data.versions))
+      .then(({ data }: any) => setVersions(data.versions))
       .catch(() => setVersions([]));
   }, [documentId]);
 
